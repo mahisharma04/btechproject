@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+
+# Environment variables — never commit real secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime data (may contain private recordings / vectors)
+chroma_data/
+media_storage/
+uploads/
+alembic/versions/__pycache__

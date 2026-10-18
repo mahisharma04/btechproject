@@ -22,3 +22,21 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables — never commit real secrets
+.env
+.env.*
+!.env.example
+
+# Python / virtual environments
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Local runtime data (may contain private recordings / vectors)
+media_storage/
+chroma_data/
+*.sqlite3
+*.db

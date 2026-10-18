@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "syncora-backend"
+version = "0.1.0"
+description = "Syncora Backend - FastAPI application"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy[asyncio]",
+    "asyncpg",
+    "psycopg2-binary",
+    "alembic",
+    "pydantic[email]",
+    "pydantic-settings",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "python-multipart",
+    "redis",
+    "celery[redis]",
+    "whisper",
+    "openai-whisper",
+    "openai",
+    "chromadb",
+    "tiktoken",
+    "moviepy==1.0.3",
+    "aiofiles",
+    "httpx",
+    "tenacity",
+    "python-dotenv",
+]
+
+[tool.setuptools]
+packages = ["app"]

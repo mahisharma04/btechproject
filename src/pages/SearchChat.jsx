@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, MessageSquare, Search } from 'lucide-react';
-import { api } from '../services/api';
+import { api, getErrorMessage } from '../services/api';
 
 const SearchChat = () => {
   const [chatMessages, setChatMessages] = useState([]);
@@ -13,23 +13,47 @@ const SearchChat = () => {
   }, [chatMessages, isTyping]);
 
   const sendChatMessage = async () => {
-    if (!chatInput.trim()) return;
-    const userMessage = { id: Date.now().toString(), role: 'user', text: chatInput.trim(), timestamp: new Date().toISOString() };
+    if (!chatInput.trim() || isTyping) return;
+    const userMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      text: chatInput.trim(),
+      timestamp: new Date().toISOString(),
+    };
     setChatMessages(prev => [...prev, userMessage]);
+    const q = chatInput.trim();
     setChatInput('');
     setIsTyping(true);
 
-    const response = await api.sendChatMessage(null, userMessage.text);
-    const assistantMessage = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      text: response.text,
-      sources: response.sources,
-      timestamp: new Date().toISOString()
-    };
-    setChatMessages(prev => [...prev, assistantMessage]);
-    setIsTyping(false);
+    try {
+      const response = await api.sendChatMessage(null, q);
+      const assistantMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        text: response.text,
+        sources: response.sources,
+        timestamp: new Date().toISOString(),
+      };
+      setChatMessages(prev => [...prev, assistantMessage]);
+    } catch (e) {
+      setChatMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        text: `Error: ${getErrorMessage(e, 'Failed to get response')}`,
+        sources: [],
+        timestamp: new Date().toISOString(),
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
+
+  const suggestions = [
+    'What are all pending action items?',
+    'Summarize our last planning meeting',
+    'What decisions did we make last week?',
+    'Who owns the high-priority follow-ups?',
+  ];
 
   return (
     <div className="p-8 h-full flex flex-col">
@@ -39,7 +63,9 @@ const SearchChat = () => {
             <Search size={24} className="text-primary" />
             Search & Chat Across All Meetings
           </h2>
-          <p className="text-gray-400 text-sm mt-2">Ask questions and find information from all your past meetings</p>
+          <p className="text-gray-400 text-sm mt-2">
+            Ask questions and find information from all your past meetings
+          </p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -49,22 +75,19 @@ const SearchChat = () => {
                 <MessageSquare size={40} className="text-gray-500" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Start a conversation</h3>
-              <p className="text-gray-400 max-w-md mx-auto mb-6">
-                Ask questions like "What did we decide about the Q3 budget?" or "Show me all action items from last week"
+              <p className="text-gray-400 max-w-md mx-auto mb-8">
+                Ask questions like “What did we decide about the Q3 budget?” to surface insights across every processed meeting.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                <button
-                  onClick={() => setChatInput("What are all pending action items?")}
-                  className="px-4 py-2 bg-gray-800 rounded-lg text-sm text-gray-300 hover:bg-gray-700 transition-colors"
-                >
-                  What are all pending action items?
-                </button>
-                <button
-                  onClick={() => setChatInput("Summarize our last planning meeting")}
-                  className="px-4 py-2 bg-gray-800 rounded-lg text-sm text-gray-300 hover:bg-gray-700 transition-colors"
-                >
-                  Summarize our last planning meeting
-                </button>
+                {suggestions.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setChatInput(s)}
+                    className="px-4 py-2 bg-gray-800 rounded-lg text-sm text-gray-300 hover:bg-gray-700 transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
@@ -75,10 +98,12 @@ const SearchChat = () => {
               >
                 <div
                   className={`max-w-[80%] rounded-2xl p-5 ${
-                    msg.role === 'user' ? 'bg-primary text-black rounded-tr-sm' : 'bg-gray-800 rounded-tl-sm'
+                    msg.role === 'user'
+                      ? 'bg-primary text-black rounded-tr-sm'
+                      : 'bg-gray-800 rounded-tl-sm'
                   }`}
                 >
-                  <p className="leading-relaxed">{msg.text}</p>
+                  <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                   {msg.sources && msg.sources.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-700">
                       <p className="text-xs text-gray-500 mb-2">Sources</p>

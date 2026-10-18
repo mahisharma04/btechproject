@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -8,7 +8,6 @@ import UploadPage from './pages/Upload';
 import SearchChat from './pages/SearchChat';
 import Settings from './pages/Settings';
 import { Upload } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const LayoutWithDashboardActions = () => {
   const navigate = useNavigate();
@@ -29,20 +28,20 @@ const LayoutWithDashboardActions = () => {
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/" replace />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 const AppContent = () => {
   const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
-    return <Login />;
-  }
-
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="/login"
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
+        />
+        <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
         <Route element={<LayoutWithDashboardActions />}>
           <Route path="/dashboard" element={
             <ProtectedRoute>

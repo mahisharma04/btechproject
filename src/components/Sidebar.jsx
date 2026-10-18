@@ -1,9 +1,23 @@
-import { NavLink } from 'react-router-dom';
-import { Home, Search, Settings, Upload } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Home, Search, Settings, Upload, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const initials = (user?.name || user?.email || '?')
+    .split(/[\s@]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(p => p[0])
+    .join('')
+    .toUpperCase();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/', { replace: true });
+  };
 
   return (
     <div className="w-64 bg-[#111113] border-r border-gray-800 h-screen flex flex-col">
@@ -74,18 +88,19 @@ const Sidebar = () => {
 
       <div className="p-4 border-t border-gray-800">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
-            <span className="text-sm font-medium">JD</span>
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/40">
+            <span className="text-sm font-medium text-primary">{initials}</span>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium">John Doe</p>
-            <p className="text-xs text-gray-500">john@example.com</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{user?.name || 'You'}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
           </div>
         </div>
         <button
-          onClick={logout}
-          className="w-full py-2 text-sm text-gray-400 hover:text-white transition-colors"
+          onClick={handleLogout}
+          className="w-full py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors flex items-center justify-center gap-2"
         >
+          <LogOut size={16} />
           Log out
         </button>
       </div>
