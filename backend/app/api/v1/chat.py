@@ -64,6 +64,19 @@ async def _answer_with_rag(
     meeting_ids_set = list({c["meeting_id"] for c in chunks if c.get("meeting_id")})
     title_map = await _get_meeting_titles(db, user_id, meeting_ids_set)
 
+    # Number the unique sources first, so the citation markers in the answer
+    # ([1], [2], ...) line up 1:1 with the sources returned to the frontend.
+    sources: List[ChatSource] = []
+    source_index: dict = {}
+    for c in chunks:
+        mid = c.get("meeting_id")
+        if mid and mid not in source_index:
+            sources.append(ChatSource(
+                meeting_id=UUID(mid),
+                meeting_title=title_map.get(str(mid), "Unknown meeting"),
+            ))
+            source_index[mid] = len(sources)
+
     context_chunks = []
     for c in chunks:
         mid = c.get("meeting_id", "")
@@ -71,23 +84,13 @@ async def _answer_with_rag(
             "text": c["text"],
             "meeting_title": title_map.get(str(mid), "Unknown meeting"),
             "meeting_id": mid,
+            "source_index": source_index.get(mid, 1),
         })
 
     answer = await llm.chat_with_context(question, context_chunks)
 
     if answer.strip() == "__NO_INFO__":
         return ChatResponse(answer=NO_INFO_MESSAGE, sources=[])
-
-    sources: List[ChatSource] = []
-    seen = set()
-    for c in chunks:
-        mid = c.get("meeting_id")
-        if mid and mid not in seen:
-            seen.add(mid)
-            sources.append(ChatSource(
-                meeting_id=UUID(mid),
-                meeting_title=title_map.get(str(mid), "Unknown meeting"),
-            ))
 
     return ChatResponse(answer=answer, sources=sources)
 

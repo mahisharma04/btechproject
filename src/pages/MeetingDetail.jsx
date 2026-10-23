@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { api, getErrorMessage } from '../services/api';
+import AnswerText from '../components/AnswerText';
 import {
   Play, Pause, CheckCircle2, Square, ChevronDown, ChevronUp,
   Send, MessageSquare, Loader2, AlertCircle, RotateCcw, FileAudio, FileVideo
@@ -463,7 +464,7 @@ const MeetingDetail = () => {
                       msg.role === 'user' ? 'bg-primary text-black rounded-tr-sm' : 'bg-gray-800 rounded-tl-sm'
                     }`}
                   >
-                    <p>{msg.text}</p>
+                    <AnswerText text={msg.text} sources={msg.sources} />
                     {msg.sources && msg.sources.length > 0 && (
                       <div className="mt-3 pt-3 border-t border-gray-700">
                         <p className="text-xs text-gray-500 mb-2">Sources</p>
@@ -471,8 +472,11 @@ const MeetingDetail = () => {
                           {msg.sources.map((source, idx) => (
                             <span
                               key={idx}
-                              className="text-xs px-2 py-1 bg-gray-700 rounded-full text-gray-300"
+                              className="flex items-center gap-2 text-xs px-2 py-1 bg-gray-700 rounded-full text-gray-300"
                             >
+                              <span className="inline-flex items-center justify-center min-w-[1.05rem] h-[1.05rem] px-1 rounded bg-gray-600 text-primary text-[0.65rem] font-semibold">
+                                {idx + 1}
+                              </span>
                               {source.meetingTitle}
                             </span>
                           ))}

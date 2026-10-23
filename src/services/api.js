@@ -62,11 +62,15 @@ const handleResponse = async (res) => {
   }
 
   let data = null;
-  const ct = res.headers.get('content-type') || '';
-  if (ct.includes('application/json')) {
-    data = await res.json();
-  } else {
-    data = await res.text().catch(() => null);
+  // 204 No Content (e.g. DELETE) has no body, so skip parsing entirely.
+  if (res.status !== 204) {
+    const ct = res.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      const text = await res.text();
+      data = text ? JSON.parse(text) : null;
+    } else {
+      data = await res.text().catch(() => null);
+    }
   }
 
   if (!res.ok) {

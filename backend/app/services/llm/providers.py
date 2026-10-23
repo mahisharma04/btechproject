@@ -284,7 +284,7 @@ class OpenAIProvider(BaseLLMProvider):
         for i, chunk in enumerate(context_chunks, 1):
             meeting_title = chunk.get("meeting_title", "Unknown meeting")
             text = chunk.get("text", "")
-            context_parts.append(f"[{i}] Source: {meeting_title}\n{text}")
+            context_parts.append(f"[{chunk.get('source_index', i)}] Source: {meeting_title}\n{text}")
         context_block = "\n\n".join(context_parts)
         system_prompt = (
             "You are Syncora, a meeting intelligence assistant. "
@@ -292,7 +292,8 @@ class OpenAIProvider(BaseLLMProvider):
             "If the context does not contain enough information to answer the question, "
             "respond exactly with: '__NO_INFO__' and nothing else. "
             "Do NOT use any external knowledge or general knowledge. "
-            "Always cite which source numbers you used. Be concise."
+            "Cite every source you relied on using its bracketed number, e.g. [1]. "
+            "Be concise."
         )
         user_prompt = (
             f"Context chunks:\n{context_block}\n\n"
@@ -431,15 +432,16 @@ class OllamaProvider(BaseLLMProvider):
         for i, chunk in enumerate(context_chunks, 1):
             meeting_title = chunk.get("meeting_title", "Unknown meeting")
             text = chunk.get("text", "")
-            context_parts.append(f"[{i}] Source: {meeting_title}\n{text}")
+            context_parts.append(f"[{chunk.get('source_index', i)}] Source: {meeting_title}\n{text}")
         context_block = "\n\n".join(context_parts)
 
         system_prompt = (
             "You are Syncora, a helpful meeting intelligence assistant. "
             "Answer the user's question ONLY using information from the provided context chunks. "
             "If the answer is not present in the context, respond with exactly the text '__NO_INFO__' "
-            "and nothing else. Do NOT use outside knowledge. When you answer, briefly cite which "
-            "source numbers you used (e.g. '[1][3]'). Keep answers concise."
+            "and nothing else. Do NOT use outside knowledge. "
+            "Cite every source you relied on using its bracketed number, e.g. [1]. "
+            "Keep answers concise."
         )
         user_prompt = (
             f"Context chunks:\n{context_block}\n\n"

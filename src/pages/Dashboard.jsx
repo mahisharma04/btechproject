@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, getErrorMessage } from '../services/api';
-import { Clock, Calendar, CheckCircle2, AlertCircle, Play, RotateCcw, Upload } from 'lucide-react';
+import { Clock, Calendar, CheckCircle2, AlertCircle, Play, RotateCcw, Upload, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -57,6 +57,19 @@ const Dashboard = () => {
       await api.retryMeeting(id);
     } catch (e) {
       alert(getErrorMessage(e, 'Failed to retry meeting'));
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this meeting? This permanently removes the recording, transcript, and all AI insights.')) {
+      return;
+    }
+    try {
+      await api.deleteMeeting(id);
+      setMeetings(prev => prev.filter(m => m.id !== id));
+      fetchData();
+    } catch (e) {
+      alert(getErrorMessage(e, 'Failed to delete meeting'));
     }
   };
 
@@ -210,6 +223,18 @@ const Dashboard = () => {
                     Retry
                   </button>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(meeting.id);
+                  }}
+                  title="Delete meeting"
+                  aria-label="Delete meeting"
+                  className="flex items-center gap-1.5 text-gray-500 hover:text-red-400 text-sm transition-colors"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
               </div>
             </div>
           ))}
